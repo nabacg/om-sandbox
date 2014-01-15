@@ -1,0 +1,12 @@
+{"version":3,
+ "file":"/home/cab/DEV/projects/om-sandbox/out/om_sandbox/core.js",
+ "sources":["core.cljs"],
+ "lineCount":43,
+ "mappings":
+ ";AAAA;;;;;;AAIA,qCAAA,yCAAA,9EAAMA,kEAAoBE,KAAKC,OAC7B,AAAA,GAAA,OAAAC;CAAA;CAAA,AAAA,AAAA;;;;;;;;;;;;AAAA,AAAA,AAAAA,uCAAA;AAAA,AAAA,AAAAA,0CAAA;AAAA,AAAA,AAAAA,+CAAA,WAAAC,mBAAAC,qBAAAC,mBAAA,AAAA,OAAAC,2BAAAF,qBAAA;;AAAA,AAAA,AAAA,AAAA,AAAAF,mDAAA;AAAA,AAAA,AAAA,AAAAA,iEAAA,WAAAK;AAAA,AAAA,IAAAA,yBAAA,KAAA,AACC,OAAAI,cAAA,KAAA;;AADD,AAAA,AAAA,AAAAT,gEAAA,WAAAM;AAAA,AAAA,IAAAA,YAAA,KAAA,AAAAC;;AAAA,AAAA,AAAA,AAAAP,yEAAA,WAAAM,MAAAC;gFADIV,ZAAoBC,bAAKC,vDAC7B,AAAA,IAAAO,YAAA,KAAA,AAAA,YAAAN,yEAAAO;;qEADIV,sFAAAA,/FAAoBC,sFAAAA,hGAAKC,sFAAAA,xIAC7B,AAAAS,6BAAA,+DAAAD,UAAA,AAAA,YAAAP,gEAAAO;;AAAAP;6CADIH,LAAoBC,NAAKC,lCAC7B,YAAAC,oDAAA;;AAGF,uBAAA,vBAACU,0DAAWd,mCAAmB,wBAAA,xBAAiBe",
+ "names":
+ ["om-sandbox.core/hello-world-widget", "hello-world-widget", "data",
+  "owner", "om-sandbox.core/t5524", "this__3970__auto__",
+  "writer__3971__auto__", "opt__3972__auto__", "cljs.core/-write",
+  "this__4931__auto__", "_5526", "meta5525", "om-sandbox.core/->t5524",
+  "js/React.DOM.div", "om.core/root", "js/document"]}
