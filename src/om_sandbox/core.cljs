@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [cljs.core.async :refer [<! chan put!]]
+            [cljs.core.async :refer [<! chan put! dropping-buffer]]
             [goog.events :as events]
             [goog.events.EventType :as event-type]
             [goog.Timer :as timer]))
@@ -75,55 +75,58 @@
                   (-> prev-state
                       (assoc :rpm new-rpm)
                       (assoc :speed new-speed))))
-         (put! channel {:rpm new-rpm
-                        :speed new-speed}))))
+         (put! channel {:type :timer}))))
     (.start timer)
     timer))
 
+;Uncaught Error: Assert failed: No more than 1024 pending puts are allowed on a single channel. C;onsider using a windowed buffer.
+;(< (.-length puts) impl/MAX-QUEUE-SIZE) 
 (defn init-user-input [channel]
-  (events/listen js/window event-type/KEYDOWN
+  (events/listen js/window event-type/CLICK
                  (fn [e]
                    (let [new-gear (get-new-value @app-state :gear :max-gear)
                          new-rpm 0]
                      (swap! app-state (fn [prev-state]
                                         (-> prev-state
                                             (assoc :gear new-gear)
-                                            (assoc :rpm new-rpm))))                   
-                     (put! channel {:gear new-gear
-                                    :rpm new-rpm})))))
+                                            (assoc :rpm new-rpm))))
+                     (.log js/console "Gear pressed" new-gear)
+                     (put! channel {:type :keyboard})))))
 
 (defn start []
-  (let [channel (chan)] ;declare some channels and create things that
+  (let [channel (chan (dropping-buffer 1))] ;declare some channels and create things that
                         ;will write to them!
     (om/root
      @app-state
      (fn [state component]
                                         ;this worked a bit better
        (init-timer channel timer-int)
-       (init-user-input channel)
+     ;  (init-user-input channel)
        (reify
          om/IWillMount
          (will-mount [_]
            ;this will constantly listen on timer channel
            (go (while true
-                 (let [msg (<! channel)]
-                                        ;and when message arrives we
-                       ;set the app-state
-                   ;(.log js/console "Msg received.. " (msg :rpm) (msg :gear))
-                   (when-let [new-speed (msg :speed)] ;todo introduce
-                                        ;message type not by value
-                                        ;keys i.e. problem with :rpm
-                                        ;in both!!!
-                     (.log js/console "Timer msg received.. ")
-                     (om/set-state! component :rpm (msg :rpm))
-                     (om/set-state! component :speed new-speed))
-                   (when-let [new-gear (msg :gear)]
-                     (.log js/console "Keydown msg received.. ")
-                     (om/set-state! component :gear new-gear)
-                     (om/set-state! component :rpm (msg :rpm)))))))
+                 (let [msg (<! channel)] ;when msg arrives set
+                                        ;component state
+                   (let [rpm (@app-state :rpm)
+                         speed (@app-state :speed)
+                         gear (@app-state :gear)]
+                     (.log js/console rpm speed gear)
+                     (om/set-state! component :rpm rpm)
+                     (om/set-state! component :speed speed)
+                     (om/set-state! component :gear gear))))))
          om/IRender
          (render [_]
-           (dom/div nil
+           (dom/div #js {:onClick (fn [e]
+                   (let [new-gear (get-new-value @app-state :gear :max-gear)
+                         new-rpm 0]
+                     (swap! app-state (fn [prev-state]
+                                        (-> prev-state
+                                            (assoc :gear new-gear)
+                                            (assoc :rpm new-rpm))))
+                     (.log js/console "Gear pressed" new-gear)
+                     (put! channel {:type :keyboard})))}
                     (dom/h2 nil "Your stats:")
                       ;we render current state
                       (dom/p nil (str :rpm " " (om/get-state component :rpm)))
