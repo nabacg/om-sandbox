@@ -43,29 +43,38 @@
   ([state state-key max-state-key] (get-new-value state state-key max-state-key inc))
   ([state state-key max-state-key inc-fn]
   (let [value (state state-key) max-value (state max-state-key)]
-    ;(.log js/console (str "New state " state-key " " value))
-     (let [new-val (inc-fn value)]
+    
+    (let [new-val (inc-fn value)]
+      ;(.log js/console (str "New state " state-key " " new-val))
        (if (< new-val max-value)
          new-val
          value)))))
 
+(defn calc-new-speed [speed rpm max-rpm]
+  (if (= speed 0)
+    35
+    (let [rpm-ratio (/ rpm max-rpm)]
+      (int
+       (+ speed
+          (* speed 0.2
+             (+ (* rpm-ratio rpm-ratio -1) rpm-ratio)))))))
 
 (defn init-timer [channel interval]
   (let [timer (goog.Timer. interval)]
     (events/listen
      timer goog.Timer/TICK
      (fn [e]
-                                        ;(.log js/console "tick.. ")
        (let [max-rpm (@app-state :max-rpm)
-             new-rpm (get-new-value @app-state :rpm :max-rpm #(+ 10 %))
+             new-rpm (get-new-value @app-state :rpm :max-rpm #(+ 100 %))
              new-speed (get-new-value
                         @app-state :speed :max-speed
-                        #(+ (int (/ 1 (/ new-rpm max-rpm))) %))] ;so the
+                        #(calc-new-speed % new-rpm max-rpm))] ;so the
                                         ;formula tries to reduce the
                                         ;speed gain as we approach the max-rpm
-         (swap! app-state assoc :rpm new-rpm) ;todo make it into one
-                                        ;state swap!
-         (swap! app-state assoc :speed new-speed)
+         (swap! app-state (fn [prev-state]
+                  (-> prev-state
+                      (assoc :rpm new-rpm)
+                      (assoc :speed new-speed))))
          (put! channel {:rpm new-rpm
                         :speed new-speed}))))
     (.start timer)
@@ -76,8 +85,10 @@
                  (fn [e]
                    (let [new-gear (get-new-value @app-state :gear :max-gear)
                          new-rpm 0]
-                     (swap! app-state assoc :gear new-gear)
-                     (swap! app-state assoc :rpm new-rpm)
+                     (swap! app-state (fn [prev-state]
+                                        (-> prev-state
+                                            (assoc :gear new-gear)
+                                            (assoc :rpm new-rpm))))                   
                      (put! channel {:gear new-gear
                                     :rpm new-rpm})))))
 
